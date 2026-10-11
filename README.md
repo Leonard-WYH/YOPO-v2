@@ -41,7 +41,8 @@ The project was tested with Ubuntu 24.04 and Jetson Orin NX. We assume that you 
 git clone --depth 1 git@github.com:TJU-Aerial-Robotics/YOPO-Tracker.git
 ```
 
-Then, click **[here](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases/download/v0.1.0-alpha/YOPO-Tracker-Simulator.zip)** to download our prebuilt YOPO-Tracker-Simulator.
+Then, click **[here](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases/download/v0.1.0-alpha/YOPO-Tracker-Simulator.zip)** to download and unzip our prebuilt **YOPO-Tracker-Simulator**. 
+See the [Release](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases/tag/v0.1.0-alpha) for more details.
 
 **2. Create Virtual Environment**
 
@@ -65,7 +66,7 @@ cd UnityConnector
 colcon build --symlink-install
 ```
 
-## Unity Simulator Instructions
+## Simulator Usage Instructions
 
 The tracking simulator can be downloaded from the [Releases page](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases). It was built based on [YOPO-Sim](https://github.com/TJU-Aerial-Robotics/YOPO-Sim), where you can control the person and collect data. Additionally, we developed an FPS game simulator for human-vs-drone gameplay (also see the [Releases page](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases)). See the figure below for usage instructions.
 
