@@ -27,6 +27,9 @@ Improvements to the navigation task described in the paper have been incorporate
     </tr>
 </table>
 
+### Hardware:
+The hardware components are listed in [hardware_list.pdf](hardware/hardware_list.pdf) and [hardware_setup.pdf](hardware/hardware_setup.pdf), and the carbon fiber frame can be found in [/hardware](hardware/) (complete assembly files are included in the [Release](https://github.com/TJU-Aerial-Robotics/YOPO/releases/tag/hardware)).
+
 
 
 ## Installation
