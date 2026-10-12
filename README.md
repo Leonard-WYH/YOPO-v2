@@ -11,7 +11,7 @@ Improvements to the navigation task described in the paper have been incorporate
 **Results Visualization:** primitive anchors (exploring the target and feasible space) and predicted trajectories (color-coded by score).
 
 <p align="center">
-    <img src="docs/prediction.gif" alt="new_env" />
+    <img src="docs/prediction.gif" alt="prediction_vis" />
 </p>
 
 **Real-world Demostration:**
@@ -71,7 +71,7 @@ colcon build --symlink-install
 The tracking simulator can be downloaded from the [Releases page](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases). It was built based on [YOPO-Sim](https://github.com/TJU-Aerial-Robotics/YOPO-Sim), where you can control the person and collect data. Additionally, we developed an FPS game simulator for human-vs-drone gameplay (also see the [Releases page](https://github.com/TJU-Aerial-Robotics/YOPO-Tracker/releases)). See the figure below for usage instructions.
 
 <p align="center">
-    <img src="docs/unity.jpg" alt="new_env" />
+    <img src="docs/unity.jpg" alt="unity" />
 </p>
 
 ## Test the Policy
@@ -129,7 +129,7 @@ If the target is lost, click `Respawn` to reset the person, drone, and all progr
 
 You should see the following:
 <p align="center">
-    <img src="docs/tracking.gif" alt="new_env" />
+    <img src="docs/tracking.gif" alt="tracking_demo" />
 </p>
 
 ## Train the Policy
@@ -152,12 +152,16 @@ YOPO-Tracker/
     │   ├── environment.ply
     │   └── label.csv
     ├── scene-1/
-    ├── scene-2/
     └── ...
 ```
 
 
-Optional: we also include the COCO dataset to improve generalization (details to be added).
+Optional: we also include the random scenes and COCO dataset to improve generalization (as shown below, details to be added).
+
+<p align="center">
+    <img src="docs/scene.jpg" alt="scene" />
+</p>
+
 
 **2. Train the Policy**
 
