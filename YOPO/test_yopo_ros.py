@@ -538,10 +538,10 @@ class YopoNet(Node):
 
     def publish_target_image(self, vis_image, target, score, stamp):
         uv, dist = self.target_uv(target)
-        if uv is not None:
+        if score > self.conf_thresh and uv is not None:
             u, v = int(round(uv[0])), int(round(uv[1]))
             if 0 <= u < self.width and 0 <= v < self.height:
-                color = (255, 255, 0) if self.hovering else (0, 255, 0) if score > self.conf_thresh else (0, 165, 255)
+                color = (255, 255, 0) if self.hovering else (0, 255, 0)
                 cv2.drawMarker(vis_image, (u, v), color, cv2.MARKER_CROSS, 8, 1)
                 cv2.circle(vis_image, (u, v), 5, color, 1)
                 text = f"{score:.2f} {dist:.1f}m"
