@@ -1,4 +1,5 @@
 #include "so3_control/NetworkControl.h"
+#include <unistd.h>
 
 NetworkControl::NetworkControl() : rclcpp::Node("network_ctrl_node")
 {

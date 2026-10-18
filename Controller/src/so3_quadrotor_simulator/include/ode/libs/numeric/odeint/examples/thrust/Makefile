@@ -7,8 +7,7 @@
 
 
 
-# CUDA_ROOT = /home/karsten/boost/cuda4.1/cuda/
-CUDA_ROOT = /usr/local/cuda
+CUDA_ROOT ?= $(patsubst %/bin/nvcc,%,$(shell command -v nvcc))
 ARCH = sm_13
 
 CC = gcc-4.4

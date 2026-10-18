@@ -23,18 +23,13 @@ from scipy.spatial.transform import Rotation as R
 # cv2.setNumThreads(1)       # resize/cvtColor 在 480x270 上单线程更快且不抢核
 
 from config.config import cfg
+from config.paths import project_path
 from quadrotor_msgs.msg import PositionCommand
 from policy.yopo_network import YopoNetwork
 from policy.poly_solver import Poly5Solver, Polys5Solver, wrap_to_pi, calculate_yaw
 from policy.primitive import LatticePrimitive
 from policy.state_transform import StateTransform
 from policy.target_ekf import EKF
-
-try:
-    from torch2trt import TRTModule
-except ImportError:
-    print("tensorrt not found.")
-
 
 class YopoNet(Node):
     def __init__(self, config, weight):
@@ -87,8 +82,13 @@ class YopoNet(Node):
 
         # Load Network
         if self.use_trt:
-            self.policy = TRTModule()
-            self.policy.load_state_dict(torch.load(weight))
+            if str(weight).endswith('.engine'):
+                from policy.tensorrt_runtime import TensorRTPolicy
+                self.policy = TensorRTPolicy(weight)
+            else:
+                from torch2trt import TRTModule
+                self.policy = TRTModule()
+                self.policy.load_state_dict(torch.load(weight, weights_only=False))
         else:
             state_dict = torch.load(weight, weights_only=True)
             self.policy = YopoNetwork()
@@ -574,6 +574,11 @@ def parser():
     parser.add_argument("--use_tensorrt", type=int, default=0, help="use tensorrt or not")
     parser.add_argument("--trial", type=int, default=1, help="trial number")
     parser.add_argument("--epoch", type=int, default=50, help="epoch number")
+    parser.add_argument("--trt_engine", default="YOPO/yopo_trt.engine", help="TensorRT engine path, relative to repository root")
+    parser.add_argument("--verbose", type=int, default=0)
+    parser.add_argument("--visualize", type=int, default=1)
+    parser.add_argument("--plan_from_reference", type=int, default=0,
+                        help="use 1 with the position controller")
     return parser
 
 
@@ -581,7 +586,7 @@ if __name__ == "__main__":
     args = parser().parse_args()
     rclpy.init()
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    weight = "yopo_trt.pth" if args.use_tensorrt else base_dir + "/saved/YOPO_{}/epoch{}.pth".format(args.trial, args.epoch)
+    weight = project_path(args.trt_engine) if args.use_tensorrt else base_dir + "/saved/YOPO_{}/epoch{}.pth".format(args.trial, args.epoch)
     print("load weight from:", weight)
 
     settings = {'use_tensorrt': args.use_tensorrt,
@@ -594,9 +599,9 @@ if __name__ == "__main__":
                 'simulation': True,             # simulation? simulated depth has no invalid points, so inpainting is skipped; set False for real flight
                 'conf_thresh': 0.9,             # target score threshold
                 'ekf_thresh': 2.0,              # target rejection distance [-1 to disable]
-                'plan_from_reference': False,   # plan from the reference state? True for a position controller, False for direct network control
-                'verbose': False,               # print timing?
-                'visualize': True               # visualize all trajectories? (set False for real flight to save computation)
+                'plan_from_reference': bool(args.plan_from_reference),
+                'verbose': bool(args.verbose),
+                'visualize': bool(args.visualize)
                 }
     node = YopoNet(settings, weight)
 

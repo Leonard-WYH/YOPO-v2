@@ -1,13 +1,16 @@
 import os
 import numpy as np
 from ruamel.yaml import YAML
+from config.paths import project_path
 
 
 # Global Configuration Management
 class Config:
     def __init__(self):
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        self._data = YAML().load(open(os.path.join(base_dir, "traj_opt.yaml"), 'r'))
+        config_path = project_path(os.environ.get('YOPO_CONFIG', os.path.join(base_dir, "traj_opt.yaml")))
+        with open(config_path, 'r') as stream:
+            self._data = YAML().load(stream)
         self._data["train"] = True
         self._data["goal_length"] = 2.0 * self._data['radio_range']
         self._data["sgm_time"] = 2 * self._data["radio_range"] / self._data["vel_max_train"]

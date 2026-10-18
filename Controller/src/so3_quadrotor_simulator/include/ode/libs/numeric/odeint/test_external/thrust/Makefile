@@ -7,7 +7,7 @@
 
 
 
-CUDA_ROOT = /usr/local/cuda
+CUDA_ROOT ?= $(patsubst %/bin/nvcc,%,$(shell command -v nvcc))
 
 CC = gcc-4.4
 CXX = gcc-4.4

@@ -6,10 +6,12 @@
 
 
 import testing ;
+import os ;
 
 use-project boost : $(BOOST_ROOT) ;
-VEXCL_INCLUDE = /home/karsten/boost/vexcl ;
-CUDA_INCLUDE = /usr/local/cuda/include ;
+VEXCL_INCLUDE = [ os.environ VEXCL_INCLUDE ] ;
+CUDA_ROOT = [ os.environ CUDA_HOME ] ;
+CUDA_INCLUDE = $(CUDA_ROOT)/include ;
 
 
 project

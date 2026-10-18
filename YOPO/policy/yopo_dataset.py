@@ -9,6 +9,7 @@ from scipy.spatial.transform import Rotation as R
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config.config import cfg
+from config.paths import project_path
 from policy.modality import blank_depth, blank_rgb, make_flags
 from policy.scene_index import scene_dirs_for
 
@@ -91,7 +92,7 @@ class YOPODataset(Dataset):
                                 if os.path.splitext(filename)[1] == '.png']
             depth_file_names.sort(key=lambda x: int(os.path.splitext(os.path.basename(x))[0]))
 
-            states = np.loadtxt(os.path.join(datafolder, "labels.csv"), delimiter=',', skiprows=1).astype(np.float32)
+            states = np.atleast_2d(np.loadtxt(os.path.join(datafolder, "labels.csv"), delimiter=',', skiprows=1)).astype(np.float32)
             positions, quaternions, targets_w = states[:, 0:3], states[:, 3:7], states[:, 7:10]
             # targets are stored in the world frame (NWU) while the network and loss use the body frame:
             # p_b = R_wb^T * (p_w - p_body_w). Invalid targets are nan and stay nan through the transform.
@@ -179,7 +180,7 @@ class YOPODataset(Dataset):
                   f" {a_lower[i]:^9.1f}~{a_upper[i]:^9.1f} |")
         print("-----------------------------------------------------")
 
-    def plot_sample_distribution(self):
+    def plot_sample_distribution(self, output=None):
         import matplotlib.pyplot as plt
         # ===== sampling =====
         N = 10000
@@ -187,7 +188,8 @@ class YOPODataset(Dataset):
         vels = np.stack([s[0] for s in states])
         accs = np.stack([s[1] for s in states])
 
-        x, y, z = self.targets[:, 0], self.targets[:, 1], self.targets[:, 2]
+        visible_targets = self.targets[np.isfinite(self.targets).all(axis=1)]
+        x, y, z = visible_targets[:, 0], visible_targets[:, 1], visible_targets[:, 2]
         yaw = np.degrees(np.arctan2(y, x))  # azimuth [-180, 180]
         pitch = np.degrees(np.arctan2(z, np.sqrt(x ** 2 + y ** 2)))  # elevation [-90, 90]
         dist = np.linalg.norm(self.targets, axis=1)
@@ -231,13 +233,29 @@ class YOPODataset(Dataset):
             axs[2, i].grid(True)
 
         plt.tight_layout()
-        plt.show()
+        if output:
+            output = project_path(output)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(output, dpi=140)
+            plt.close(fig)
+        else:
+            plt.show()
 
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--plot-output')
+    parser.add_argument('--skip-benchmark', action='store_true')
+    parser.add_argument('--dataset')
+    args = parser.parse_args()
+    if args.dataset:
+        cfg['dataset_path'] = str(project_path(args.dataset))
     # plot the random sample
     dataset = YOPODataset()
-    dataset.plot_sample_distribution()
+    dataset.plot_sample_distribution(args.plot_output)
+    if args.skip_benchmark:
+        sys.exit(0)
 
     # select the best num_workers
     max_workers = os.cpu_count()

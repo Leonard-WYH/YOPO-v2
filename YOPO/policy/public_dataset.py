@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
 from config.config import cfg
+from config.paths import project_path
 from policy.modality import BLANK_DEPTH, make_flags
 from policy.yopo_dataset import sample_random_state
 
@@ -21,8 +22,7 @@ class PublicRGBDataset(Dataset):
         self.max_dis = 20.0
         self.augment = bool(int(cfg["data_augment"])) and mode == 'train'
 
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        data_dir = os.path.join(base_dir, "../", cfg["public_dataset_path"])
+        data_dir = project_path(cfg["public_dataset_path"])
         self.depth_dir = os.path.join(data_dir, "depth")
         self.has_depth = os.path.isdir(self.depth_dir)
         labels = np.loadtxt(os.path.join(data_dir, "labels.csv"), delimiter=',', skiprows=1).astype(np.float32)

@@ -7,15 +7,17 @@ numbers. A missing val_dataset_path contributes nothing and validation is simply
 import os
 
 from config.config import cfg
+from config.paths import project_path
 
-_BASE = os.path.dirname(os.path.abspath(__file__))
 _ROOT_KEYS = {'train': "dataset_path", 'valid': "val_dataset_path"}
 
 
 def _scan(mode):
     root = cfg[_ROOT_KEYS[mode]]          # read here, not at import, so cfg stays overridable
-    path = os.path.join(_BASE, "../", root)
-    if not root or not os.path.isdir(path):
+    if not root:
+        return []
+    path = project_path(root)
+    if not path.is_dir():
         return []
     dirs = [f.path for f in os.scandir(path)
             if f.is_dir() and os.path.basename(f.path).startswith("scene-")]

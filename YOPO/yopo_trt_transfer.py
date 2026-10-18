@@ -1,84 +1,85 @@
-"""
-    Convert the YOPO model to TensorRT
-    prepare:
-        1 pip install -U nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
-        2 git clone https://github.com/NVIDIA-AI-IOT/torch2trt
-          cd torch2trt
-          python setup.py install
-"""
-
-import os
+"""Export the pretrained policy through ONNX and build a TensorRT 10 engine."""
 import argparse
+import json
+from pathlib import Path
 import time
-import numpy as np
 import torch
-from torch2trt import torch2trt
 from config.config import cfg
+from config.paths import project_path, relative_path
 from policy.yopo_network import YopoNetwork
+from policy.tensorrt_runtime import TensorRTPolicy
 
 
-def parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--trial", type=int, default=1, help="trial number")
-    parser.add_argument("--epoch", type=int, default=50, help="epoch number")
-    parser.add_argument("--dir", type=str, default='yopo_trt.pth', help="output file name")
-    return parser
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--trial', type=int, default=1)
+    parser.add_argument('--epoch', type=int, default=50)
+    parser.add_argument('--dir', default='YOPO/yopo_trt.engine', help='output path, relative to repository root')
+    parser.add_argument('--fp16', type=int, choices=(0, 1), default=1)
+    parser.add_argument('--iterations', type=int, default=200)
+    args = parser.parse_args()
+    import tensorrt as trt
+    if not torch.cuda.is_available():
+        raise RuntimeError('TensorRT conversion requires CUDA')
+    cfg['train'] = False
+    base = Path(__file__).resolve().parent
+    weight = base / f'saved/YOPO_{args.trial}/epoch{args.epoch}.pth'
+    output = project_path(args.dir)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    policy = YopoNetwork().cuda().eval()
+    policy.load_state_dict(torch.load(weight, weights_only=True))
+    torch.manual_seed(0)
+    rgbd = torch.rand(1, 4, cfg['image_height'], cfg['image_width'], device='cuda')
+    obs = torch.randn(1, 6, cfg['vertical_num'], cfg['horizon_num'], device='cuda') * 0.1
+    onnx_path = output.with_suffix('.onnx')
+    with torch.inference_mode():
+        torch.onnx.export(policy, (rgbd, obs), str(onnx_path), opset_version=17,
+                          input_names=['rgbd', 'obs'], output_names=list(TensorRTPolicy.output_names),
+                          dynamo=False)
+    logger = trt.Logger(trt.Logger.WARNING)
+    builder = trt.Builder(logger)
+    network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+    onnx_parser = trt.OnnxParser(network, logger)
+    if not onnx_parser.parse(onnx_path.read_bytes()):
+        raise RuntimeError('\n'.join(str(onnx_parser.get_error(i)) for i in range(onnx_parser.num_errors)))
+    config = builder.create_builder_config()
+    config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 30)
+    if args.fp16:
+        config.set_flag(trt.BuilderFlag.FP16)
+    print('Building TensorRT engine...', flush=True)
+    engine = builder.build_serialized_network(network, config)
+    if engine is None:
+        raise RuntimeError('TensorRT build failed')
+    output.write_bytes(bytes(engine))
+    converted = TensorRTPolicy(output)
+    with torch.inference_mode():
+        reference = policy(rgbd, obs)
+        actual = converted(rgbd, obs)
+        torch.cuda.synchronize()
+        errors = {name: {'mae': (a - b).abs().mean().item(), 'max_abs': (a - b).abs().max().item()}
+                  for name, a, b in zip(TensorRTPolicy.output_names, reference, actual)}
+        if not all(torch.isfinite(v).all().item() for v in actual):
+            raise RuntimeError('Non-finite TensorRT output')
+        for a, b in zip(reference, actual):
+            torch.testing.assert_close(a, b, atol=0.05, rtol=0.03)
+
+        def benchmark(model):
+            for _ in range(20):
+                model(rgbd, obs)
+            torch.cuda.synchronize()
+            start = time.perf_counter()
+            for _ in range(args.iterations):
+                model(rgbd, obs)
+            torch.cuda.synchronize()
+            return (time.perf_counter() - start) * 1000 / args.iterations
+
+        report = {'trial': args.trial, 'gpu': torch.cuda.get_device_name(0),
+                  'torch': torch.__version__, 'tensorrt': trt.__version__, 'fp16': bool(args.fp16),
+                  'torch_ms': benchmark(policy), 'tensorrt_ms': benchmark(converted),
+                  'errors': errors, 'engine': relative_path(output)}
+    output.with_suffix('.json').write_text(json.dumps(report, indent=2) + '\n')
+    print(json.dumps(report, indent=2))
 
 
-if __name__ == "__main__":
-    args = parser().parse_args()
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    weight = base_dir + "/saved/YOPO_{}/epoch{}.pth".format(args.trial, args.epoch)
-
-    print("Loading Network...")
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    state_dict = torch.load(weight, weights_only=True)
-    policy = YopoNetwork()
-    policy.load_state_dict(state_dict)
-    policy = policy.to(device)
-    policy.eval()
-
-    # The inputs should be consistent with training
-    depth = np.zeros(shape=[1, 4, cfg["image_height"], cfg["image_width"]], dtype=np.float32)
-    obs = np.zeros(shape=[1, 6, cfg["vertical_num"], cfg["horizon_num"]], dtype=np.float32)
-    depth_in = torch.from_numpy(depth).to(device)
-    obs_in = torch.from_numpy(obs).to(device)
-
-    print("TensorRT Transfer...")
-    model_trt = torch2trt(policy, [depth_in, obs_in], fp16_mode=True)
-    torch.save(model_trt.state_dict(), args.dir)
-
-
-    print("Evaluation...")
-    # Warm Up...
-    endstate_trt, target_trt, traj_cost_trt, obj_score_trt, traj_time_trt = model_trt(depth_in, obs_in)
-    endstate, target, traj_cost, obj_score, traj_time = policy(depth_in, obs_in)
-    torch.cuda.synchronize()
-
-    # PyTorch Latency
-    torch_start = time.time()
-    endstate, target, traj_cost, obj_score, traj_time = policy(depth_in, obs_in)
-    torch.cuda.synchronize()
-    torch_end = time.time()
-
-    # TensorRT Latency
-    trt_start = time.time()
-    endstate_trt, target_trt, traj_cost_trt, obj_score_trt, traj_time_trt = model_trt(depth_in, obs_in)
-    torch.cuda.synchronize()
-    trt_end = time.time()
-
-    # Transfer Error
-    traj_error = torch.mean(torch.abs(endstate - endstate_trt))
-    target_error = torch.mean(torch.abs(target - target_trt))
-    cost_error = torch.mean(torch.abs(traj_cost - traj_cost_trt))
-    score_error = torch.mean(torch.abs(obj_score - obj_score_trt))
-    time_error = torch.mean(torch.abs(traj_time - traj_time_trt))
-
-    print(f"Torch Latency: {1000 * (torch_end - torch_start):.3f} ms, "
-          f"TensorRT Latency: {1000 * (trt_end - trt_start):.3f} ms, "
-          f"Transfer Trajectory Error: {traj_error.item():.6f},"
-          f"Transfer Detection Error: {target_error.item():.6f},"
-          f"Transfer Cost Error: {cost_error.item():.6f},"
-          f"Transfer Time Error: {time_error.item():.6f},"
-          f"Transfer Score Error: {score_error.item():.6f}")
-
+if __name__ == '__main__':
+    main()

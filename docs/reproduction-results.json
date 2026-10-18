@@ -1,0 +1,895 @@
+{
+  "environment": {
+    "python": "3.9.15 | packaged by conda-forge | (main, Nov 22 2022, 08:45:29) \n[GCC 10.4.0]",
+    "prefix": "${CONDA_PREFIX}",
+    "torch": "2.8.0+cu128",
+    "numpy": "1.22.3",
+    "opencv": "4.11.0",
+    "rclpy": "3.3.4",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti",
+    "ros_domain": "42",
+    "policies": {
+      "1": {
+        "weight": "YOPO/saved/YOPO_1/epoch50.pth",
+        "finite": true,
+        "outputs": [
+          [
+            1,
+            9,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ]
+        ],
+        "latency_ms": 1.230516189998525
+      },
+      "2": {
+        "weight": "YOPO/saved/YOPO_2/epoch50.pth",
+        "finite": true,
+        "outputs": [
+          [
+            1,
+            9,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ],
+          [
+            1,
+            3,
+            5
+          ]
+        ],
+        "latency_ms": 1.0568340100007845
+      }
+    },
+    "status": "passed"
+  },
+  "demos": [
+    {
+      "messages": {
+        "drone": 3481,
+        "rgb": 1741,
+        "depth": 1878,
+        "character": 631,
+        "command": 2952,
+        "target": 1730
+      },
+      "positions": {
+        "drone": [
+          57.176530834984014,
+          -92.17820496619882,
+          1.4898943427986004
+        ],
+        "character": [
+          58.217063903808594,
+          -90.86006164550781,
+          0.04311913251876831
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 44.22610853211527,
+        "character": 46.83497653216142
+      },
+      "nonfinite_values": 0,
+      "command_modes": [
+        "position"
+      ],
+      "demo": "tracker",
+      "backend": "torch",
+      "controller": "attitude",
+      "duration_sec": 60.57432809300008,
+      "display": "nested",
+      "graphics": "vulkan",
+      "window_size": [
+        1600,
+        900
+      ],
+      "person_motion": {
+        "walk_seconds": 8,
+        "stop_seconds": 3,
+        "speed_mps": 3,
+        "goal_requests": 4,
+        "phases": [
+          {
+            "phase": "walk",
+            "started_sec": 0.0,
+            "distance_m": 21.231,
+            "ended_sec": 8.157,
+            "samples": 12,
+            "mean_speed_mps": 2.759,
+            "max_speed_mps": 3.305
+          },
+          {
+            "phase": "stop",
+            "started_sec": 8.157,
+            "distance_m": 1.047,
+            "ended_sec": 11.206,
+            "samples": 4,
+            "mean_speed_mps": 0.0,
+            "max_speed_mps": 0.0
+          },
+          {
+            "phase": "walk",
+            "started_sec": 11.206,
+            "distance_m": 12.121,
+            "ended_sec": 19.338,
+            "samples": 12,
+            "mean_speed_mps": 1.666,
+            "max_speed_mps": 2.862
+          },
+          {
+            "phase": "stop",
+            "started_sec": 19.338,
+            "distance_m": 1.35,
+            "ended_sec": 22.394,
+            "samples": 3,
+            "mean_speed_mps": 0.0,
+            "max_speed_mps": 0.0
+          },
+          {
+            "phase": "walk",
+            "started_sec": 22.394,
+            "distance_m": 10.801,
+            "ended_sec": 30.58,
+            "samples": 11,
+            "mean_speed_mps": 1.314,
+            "max_speed_mps": 3.288
+          },
+          {
+            "phase": "stop",
+            "started_sec": 30.58,
+            "distance_m": 1.861,
+            "ended_sec": 33.623,
+            "samples": 3,
+            "mean_speed_mps": 0.0,
+            "max_speed_mps": 0.0
+          },
+          {
+            "phase": "walk",
+            "started_sec": 33.623,
+            "distance_m": 22.436,
+            "ended_sec": 41.799,
+            "samples": 12,
+            "mean_speed_mps": 2.833,
+            "max_speed_mps": 3.325
+          },
+          {
+            "phase": "stop",
+            "started_sec": 41.799,
+            "distance_m": 0.921,
+            "ended_sec": 44.838,
+            "samples": 4,
+            "mean_speed_mps": 0.0,
+            "max_speed_mps": 0.0
+          },
+          {
+            "phase": "walk",
+            "started_sec": 44.838,
+            "distance_m": 17.948,
+            "ended_sec": 52.955,
+            "samples": 12,
+            "mean_speed_mps": 2.329,
+            "max_speed_mps": 2.882
+          },
+          {
+            "phase": "stop",
+            "started_sec": 52.955,
+            "distance_m": 0.0,
+            "ended_sec": 56.006,
+            "samples": 3,
+            "mean_speed_mps": 0.0,
+            "max_speed_mps": 0.0
+          },
+          {
+            "phase": "walk",
+            "started_sec": 56.006,
+            "distance_m": 5.514,
+            "samples": 7,
+            "mean_speed_mps": 1.286,
+            "max_speed_mps": 2.772
+          }
+        ]
+      },
+      "status": "passed",
+      "evidence": "logs/20261018-225401-tracker-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1149,
+        "rgb": 424,
+        "depth": 483,
+        "character": 162,
+        "command": 621,
+        "target": 366
+      },
+      "positions": {
+        "drone": [
+          51.55346637355891,
+          -52.36222912196495,
+          1.8719838012269463
+        ],
+        "character": [
+          55.516231536865234,
+          -51.868778228759766,
+          0.6481451988220215
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 6.967344334771325,
+        "character": 5.827602791979986
+      },
+      "nonfinite_values": 0,
+      "command_modes": [
+        "position"
+      ],
+      "demo": "click",
+      "backend": "torch",
+      "controller": "attitude",
+      "duration_sec": 12.637528680999822,
+      "display": "nested",
+      "graphics": "vulkan",
+      "status": "passed",
+      "evidence": "logs/20261018-224747-click-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1252,
+        "rgb": 495,
+        "depth": 541,
+        "character": 184,
+        "command": 720,
+        "target": 415
+      },
+      "positions": {
+        "drone": [
+          55.84112230048886,
+          -52.85492437154868,
+          1.9143513623385722
+        ],
+        "character": [
+          56.65009307861328,
+          -50.026649475097656,
+          0.692046582698822
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 11.30575114525741,
+        "character": 6.654604897158351
+      },
+      "nonfinite_values": 0,
+      "demo": "keyboard",
+      "backend": "torch",
+      "controller": "attitude",
+      "duration_sec": 12.61325515999988,
+      "display": "nested",
+      "graphics": "vulkan",
+      "evidence": "logs/20261018-223005-keyboard-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1320,
+        "rgb": 514,
+        "depth": 585,
+        "character": 198,
+        "command": 792,
+        "target": 421
+      },
+      "positions": {
+        "drone": [
+          45.6337694119956,
+          -38.57114546997846,
+          1.828084817619607
+        ],
+        "character": [
+          44.5933723449707,
+          -34.90034866333008,
+          0.582172155380249
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 12.432392346113476,
+        "character": 16.52602730638748
+      },
+      "nonfinite_values": 0,
+      "demo": "ros",
+      "backend": "torch",
+      "controller": "attitude",
+      "duration_sec": 15.472255341999926,
+      "display": "nested",
+      "graphics": "vulkan",
+      "status": "passed",
+      "evidence": "logs/20261018-223038-ros-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1284,
+        "rgb": 38,
+        "depth": 565,
+        "character": 190,
+        "command": 762,
+        "target": 433
+      },
+      "positions": {
+        "drone": [
+          60.710147187708856,
+          -66.45685346997686,
+          1.469932653813828
+        ],
+        "character": [
+          65.56746673583984,
+          -65.45867156982422,
+          0.1690366268157959
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 22.816487545062287,
+        "character": 21.94148216314453
+      },
+      "nonfinite_values": 0,
+      "demo": "tracker",
+      "backend": "torch",
+      "controller": "position",
+      "duration_sec": 15.540084978000095,
+      "display": "nested",
+      "graphics": "vulkan",
+      "status": "passed",
+      "evidence": "logs/20261018-223112-tracker-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1540,
+        "rgb": 608,
+        "depth": 716,
+        "character": 240,
+        "command": 1017,
+        "target": 568
+      },
+      "positions": {
+        "drone": [
+          60.70860862185813,
+          -66.43131548431934,
+          1.4626371884678144
+        ],
+        "character": [
+          65.50263977050781,
+          -65.43357849121094,
+          0.1703495979309082
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 22.7899659233442,
+        "character": 21.877806057572258
+      },
+      "nonfinite_values": 0,
+      "demo": "tracker",
+      "backend": "tensorrt",
+      "controller": "attitude",
+      "duration_sec": 20.536105597000187,
+      "display": "nested",
+      "graphics": "vulkan",
+      "status": "passed",
+      "evidence": "logs/20261018-223145-tracker-tensorrt/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1170,
+        "rgb": 176,
+        "depth": 201,
+        "character": 163,
+        "command": 232,
+        "target": 97
+      },
+      "positions": {
+        "drone": [
+          12.222847508054427,
+          -67.78619605027244,
+          7.66845248433185
+        ],
+        "character": [
+          52.44702911376953,
+          -55.28749084472656,
+          0.6203644275665283
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 37.72063586541587,
+        "character": 5.833473502380301
+      },
+      "nonfinite_values": 0,
+      "command_modes": [
+        "position"
+      ],
+      "demo": "fps",
+      "backend": "torch",
+      "controller": "attitude",
+      "duration_sec": 10.597751329999937,
+      "display": "nested",
+      "graphics": "vulkan",
+      "status": "passed",
+      "evidence": "logs/20261018-224154-fps-torch/result.json"
+    },
+    {
+      "messages": {
+        "drone": 1418,
+        "rgb": 119,
+        "depth": 173,
+        "character": 212,
+        "command": 182,
+        "target": 70
+      },
+      "positions": {
+        "drone": [
+          37.38271536414156,
+          -53.76718573527709,
+          15.461584100652447
+        ],
+        "character": [
+          49.21449661254883,
+          -55.70248031616211,
+          0.3639078140258789
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 15.92128094711852,
+        "character": 5.716422780220652
+      },
+      "nonfinite_values": 0,
+      "command_modes": [
+        "position"
+      ],
+      "demo": "fps",
+      "backend": "tensorrt",
+      "controller": "attitude",
+      "duration_sec": 15.756775242999993,
+      "display": "nested",
+      "graphics": "vulkan",
+      "window_size": [
+        1920,
+        1080
+      ],
+      "status": "passed",
+      "evidence": "logs/20261018-225527-fps-tensorrt/result.json"
+    },
+    {
+      "messages": {
+        "drone": 988,
+        "command": 1591
+      },
+      "positions": {
+        "drone": [
+          4.764337501929084,
+          0.00013549986320238611,
+          0.9102477361766546
+        ]
+      },
+      "max_displacement_m": {
+        "drone": 5.3649016886969285
+      },
+      "nonfinite_values": 0,
+      "command_modes": [
+        "acceleration",
+        "position",
+        "velocity"
+      ],
+      "demo": "controller",
+      "backend": "cpp",
+      "controller": "position",
+      "duration_sec": 18.016204797000228,
+      "status": "passed",
+      "evidence": "logs/20261018-224924-controller-cpp/result.json"
+    }
+  ],
+  "missing_demos": [],
+  "collection_runs": [
+    {
+      "scene": "dataset/scene-1",
+      "rgb": 64,
+      "depth": 64,
+      "map_bytes": 124347254,
+      "labels": 64,
+      "evidence": "logs/20261018-223716-collect-torch/result.json"
+    }
+  ],
+  "datasets": [
+    {
+      "scene": "dataset/scene-0",
+      "samples": 64,
+      "visible_target_samples": 45,
+      "map_bytes": 124347254
+    },
+    {
+      "scene": "dataset/scene-1",
+      "samples": 64,
+      "visible_target_samples": 45,
+      "map_bytes": 124347254
+    }
+  ],
+  "training": [
+    {
+      "checkpoint": "YOPO/saved/YOPO_3/epoch1.pth",
+      "optimization_steps": 16,
+      "scalar_records": 16,
+      "all_losses_finite": true,
+      "checkpoint_finite": true,
+      "scalar_tags": [
+        "Train/TrajLoss",
+        "Train/DetectLoss",
+        "Train/CostLoss",
+        "Train/ScoreLoss",
+        "Detail/SmoothLoss",
+        "Detail/SafetyLoss",
+        "Detail/TrackLoss",
+        "Detail/GuideLoss",
+        "Detail/HeightLoss",
+        "Detail/TimeLoss",
+        "Detail/FeasibleLoss",
+        "Detail/AccelLoss",
+        "Detail/LearningRate",
+        "BestTraj/MaxVel",
+        "BestTraj/MeanVel",
+        "BestTraj/MinObstacleDist",
+        "BestTraj/Time",
+        "BestTraj/TargetDist"
+      ]
+    },
+    {
+      "checkpoint": "YOPO/saved/YOPO_4/epoch1.pth",
+      "optimization_steps": 32,
+      "scalar_records": 16,
+      "all_losses_finite": true,
+      "checkpoint_finite": true,
+      "scalar_tags": [
+        "Train/TrajLoss",
+        "Train/DetectLoss",
+        "Train/CostLoss",
+        "Train/ScoreLoss",
+        "Detail/SmoothLoss",
+        "Detail/SafetyLoss",
+        "Detail/TrackLoss",
+        "Detail/GuideLoss",
+        "Detail/HeightLoss",
+        "Detail/TimeLoss",
+        "Detail/FeasibleLoss",
+        "Detail/AccelLoss",
+        "BestTraj/MaxVel",
+        "BestTraj/MeanVel",
+        "BestTraj/MinObstacleDist",
+        "BestTraj/Time",
+        "BestTraj/TargetDist",
+        "Detail/LearningRate"
+      ]
+    },
+    {
+      "checkpoint": "YOPO/saved/YOPO_5/epoch1.pth",
+      "optimization_steps": 32,
+      "scalar_records": 16,
+      "all_losses_finite": true,
+      "checkpoint_finite": true,
+      "scalar_tags": [
+        "Train/TrajLoss",
+        "Train/DetectLoss",
+        "Train/CostLoss",
+        "Train/ScoreLoss",
+        "Detail/SmoothLoss",
+        "Detail/SafetyLoss",
+        "Detail/TrackLoss",
+        "Detail/GuideLoss",
+        "Detail/HeightLoss",
+        "Detail/TimeLoss",
+        "Detail/FeasibleLoss",
+        "Detail/AccelLoss",
+        "BestTraj/MaxVel",
+        "BestTraj/MeanVel",
+        "BestTraj/MinObstacleDist",
+        "BestTraj/Time",
+        "BestTraj/TargetDist",
+        "Detail/LearningRate"
+      ]
+    }
+  ],
+  "tensorrt": [
+    {
+      "trial": 1,
+      "gpu": "NVIDIA GeForce RTX 5070 Ti",
+      "torch": "2.8.0+cu128",
+      "tensorrt": "10.9.0.34",
+      "fp16": true,
+      "torch_ms": 1.426127885000028,
+      "tensorrt_ms": 0.2970449099996131,
+      "errors": {
+        "endstate": {
+          "mae": 0.0005944323493167758,
+          "max_abs": 0.008736710995435715
+        },
+        "target": {
+          "mae": 0.0020134171936661005,
+          "max_abs": 0.01103830337524414
+        },
+        "traj_cost": {
+          "mae": 0.0021372558549046516,
+          "max_abs": 0.0052568912506103516
+        },
+        "obj_score": {
+          "mae": 4.124030965613201e-06,
+          "max_abs": 3.5231467336416245e-05
+        },
+        "traj_time": {
+          "mae": 0.0004919092170894146,
+          "max_abs": 0.0014695525169372559
+        }
+      },
+      "engine": "YOPO/yopo_tracker_trt.engine"
+    },
+    {
+      "trial": 2,
+      "gpu": "NVIDIA GeForce RTX 5070 Ti",
+      "torch": "2.8.0+cu128",
+      "tensorrt": "10.9.0.34",
+      "fp16": true,
+      "torch_ms": 1.1037566599998172,
+      "tensorrt_ms": 0.2042592750001404,
+      "errors": {
+        "endstate": {
+          "mae": 0.00046337986714206636,
+          "max_abs": 0.0051580071449279785
+        },
+        "target": {
+          "mae": 0.0022631154861301184,
+          "max_abs": 0.013524532318115234
+        },
+        "traj_cost": {
+          "mae": 0.00077370012877509,
+          "max_abs": 0.004004716873168945
+        },
+        "obj_score": {
+          "mae": 7.01358067090041e-06,
+          "max_abs": 8.143414743244648e-05
+        },
+        "traj_time": {
+          "mae": 0.00024441879941150546,
+          "max_abs": 0.0007088184356689453
+        }
+      },
+      "engine": "YOPO/yopo_fps_trt.engine"
+    }
+  ],
+  "tensorboard_http_200": true,
+  "dataset_plot": true,
+  "status": "passed",
+  "upstream_commit": "d313f8610195dc986caceff7a3616f63d7e6f31f",
+  "recorded_on": "2026-10-18",
+  "description": "本机实际复现结果快照。evidence 指向当次生成的本地文件，原始产物不包含在 Git 仓库中。",
+  "portability_verification": {
+    "method": "将待提交源码复制到仓库外临时目录，从不同工作目录调用；资源复用已校验文件，ROS 工作区重新编译。",
+    "recorded_on": "2026-10-18",
+    "setup": {
+      "controller_packages_built": 5,
+      "endpoint_packages_built": 1,
+      "status": "passed"
+    },
+    "relative_dataset_plot": "passed",
+    "public_dataset_loading": "passed",
+    "training": {
+      "epochs": 1,
+      "batch_size": 4,
+      "optimization_steps": 32,
+      "finite_loss_records": 16,
+      "checkpoint_finite": true
+    },
+    "tensorrt_export": {
+      "trial": 1,
+      "gpu": "NVIDIA GeForce RTX 5070 Ti",
+      "torch": "2.8.0+cu128",
+      "tensorrt": "10.9.0.34",
+      "fp16": true,
+      "torch_ms": 0.8917046000533446,
+      "tensorrt_ms": 0.192454500029271,
+      "errors": {
+        "endstate": {
+          "mae": 0.0005536331445910037,
+          "max_abs": 0.0058307647705078125
+        },
+        "target": {
+          "mae": 0.002482689917087555,
+          "max_abs": 0.018488407135009766
+        },
+        "traj_cost": {
+          "mae": 0.0017778397304937243,
+          "max_abs": 0.004421114921569824
+        },
+        "obj_score": {
+          "mae": 5.335659352567745e-06,
+          "max_abs": 3.5231467336416245e-05
+        },
+        "traj_time": {
+          "mae": 0.0004408260283526033,
+          "max_abs": 0.0007951855659484863
+        }
+      },
+      "engine": "YOPO/relocation_test.engine"
+    },
+    "demos": [
+      {
+        "messages": {
+          "drone": 1762,
+          "rgb": 799,
+          "depth": 854,
+          "character": 287,
+          "command": 1233,
+          "target": 728
+        },
+        "positions": {
+          "drone": [
+            51.446243947493365,
+            -59.584116145336736,
+            1.7361115453033953
+          ],
+          "character": [
+            45.95633316040039,
+            -56.15053939819336,
+            0.23198574781417847
+          ]
+        },
+        "max_displacement_m": {
+          "drone": 22.94741879057472,
+          "character": 21.908191873421483
+        },
+        "nonfinite_values": 0,
+        "command_modes": [
+          "position"
+        ],
+        "demo": "tracker",
+        "backend": "torch",
+        "controller": "attitude",
+        "duration_sec": 25.688035623999895,
+        "display": "nested",
+        "graphics": "vulkan",
+        "window_size": [
+          1600,
+          900
+        ],
+        "person_motion": {
+          "walk_seconds": 8,
+          "stop_seconds": 3,
+          "speed_mps": 3,
+          "goal_requests": 2,
+          "phases": [
+            {
+              "phase": "walk",
+              "started_sec": 0.0,
+              "distance_m": 21.202,
+              "ended_sec": 8.178,
+              "samples": 12,
+              "mean_speed_mps": 2.751,
+              "max_speed_mps": 3.29
+            },
+            {
+              "phase": "stop",
+              "started_sec": 8.178,
+              "distance_m": 1.082,
+              "ended_sec": 11.232,
+              "samples": 4,
+              "mean_speed_mps": 0.0,
+              "max_speed_mps": 0.0
+            },
+            {
+              "phase": "walk",
+              "started_sec": 11.232,
+              "distance_m": 12.108,
+              "ended_sec": 19.372,
+              "samples": 12,
+              "mean_speed_mps": 1.657,
+              "max_speed_mps": 2.929
+            },
+            {
+              "phase": "stop",
+              "started_sec": 19.372,
+              "distance_m": 1.351,
+              "ended_sec": 22.417,
+              "samples": 3,
+              "mean_speed_mps": 0.0,
+              "max_speed_mps": 0.0
+            },
+            {
+              "phase": "walk",
+              "started_sec": 22.417,
+              "distance_m": 9.15,
+              "samples": 4,
+              "mean_speed_mps": 2.856,
+              "max_speed_mps": 2.872
+            }
+          ]
+        },
+        "status": "passed",
+        "evidence": "logs/portability/20261018-231124-tracker-torch/result.json"
+      },
+      {
+        "messages": {
+          "drone": 1267,
+          "rgb": 31,
+          "depth": 164,
+          "character": 182,
+          "command": 128,
+          "target": 54
+        },
+        "positions": {
+          "drone": [
+            27.902168798997653,
+            -140.3756669391571,
+            0.0
+          ],
+          "character": [
+            50.16518783569336,
+            -51.52055740356445,
+            0.6141670942306519
+          ]
+        },
+        "max_displacement_m": {
+          "drone": 92.00048022168602,
+          "character": 1.5160730752870857
+        },
+        "nonfinite_values": 0,
+        "command_modes": [
+          "position"
+        ],
+        "demo": "fps",
+        "backend": "tensorrt",
+        "controller": "attitude",
+        "duration_sec": 12.639674054000352,
+        "display": "nested",
+        "graphics": "vulkan",
+        "window_size": [
+          1600,
+          900
+        ],
+        "status": "passed",
+        "evidence": "logs/portability/20261018-231207-fps-tensorrt/result.json"
+      }
+    ],
+    "collection": {
+      "scene": "dataset/scene-2",
+      "rgb": 4,
+      "depth": 4,
+      "map_bytes": 124347254,
+      "labels": 4,
+      "evidence": "logs/portability/20261018-231239-collect-torch/result.json"
+    },
+    "status": "passed"
+  }
+}

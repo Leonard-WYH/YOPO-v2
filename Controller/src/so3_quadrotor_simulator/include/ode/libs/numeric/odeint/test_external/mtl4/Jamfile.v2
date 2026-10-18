@@ -5,10 +5,11 @@
 
 import testing ;
 import boost ;
+import os ;
 
 boost.use-project ;
 
-MTL4_INCLUDE = /home/karsten/boost/MTL-4.0.8862-Linux/usr/include ;
+MTL4_INCLUDE = [ os.environ MTL4_INCLUDE ] ;
 
 project
     : requirements 

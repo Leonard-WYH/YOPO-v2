@@ -1,9 +1,10 @@
 import sys
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    file_path = sys.argv[1]
+    file_path = Path(__file__).resolve().parents[4] / Path(sys.argv[1]).expanduser()
     temp = np.loadtxt(file_path, dtype=str, delimiter=",")
     print('load file:', file_path)
     label = temp[0, :].astype(str)

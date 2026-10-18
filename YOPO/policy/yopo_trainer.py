@@ -15,6 +15,7 @@ from torch.utils.data import ConcatDataset, DataLoader, WeightedRandomSampler
 from torch.utils.tensorboard.writer import SummaryWriter
 
 from config.config import cfg
+from config.paths import project_path
 from loss.loss_function import YOPOLoss
 from loss.detection_loss import DetectionLoss
 from policy.yopo_network import YopoNetwork
@@ -65,7 +66,7 @@ class YopoTrainer:
         self.lr_final_ratio = lr_final_ratio
         self.warmup_epochs = warmup_epochs
         public_path = cfg["public_dataset_path"]
-        public_dir = os.path.join(os.path.dirname(__file__), "../", public_path) if public_path else ""
+        public_dir = project_path(public_path) if public_path else ""
         self.public_ratio = float(cfg["public_ratio"]) if os.path.isdir(public_dir) else 0.0
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.w_traj = float(cfg["w_traj"])
@@ -104,6 +105,9 @@ class YopoTrainer:
 
         # dataset: the validation set stays purely real so its metrics remain comparable
         real_train = YOPODataset(mode='train')
+        if len(real_train) < self.batch_size:
+            raise ValueError(f'Training needs at least {self.batch_size} samples; got {len(real_train)}. '
+                             'Collect more data or reduce --batch-size.')
         self.train_dataloader = self.build_train_loader(real_train)
         val_set = YOPODataset(mode='valid')
         self.val_dataloader = None if len(val_set) == 0 else DataLoader(
@@ -392,7 +396,10 @@ class YopoTrainer:
         if hasattr(self, "epoch_i"):
             self.progress_log.console.log("Saving model...")
             torch.save(self.ema.ema.state_dict(), f"{self.tensorboard_path}/epoch{self.epoch_i + 1}.pth")
-            atexit.unregister(self._exit_func)
+            exit_func = getattr(self, '_exit_func', None)
+            if exit_func is not None:
+                atexit.unregister(exit_func)
+                del self._exit_func
 
     def get_next_log_path(self, base_path):
         nums = [int(name.split("_")[1])

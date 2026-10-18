@@ -3,7 +3,8 @@
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-MTL4_INCLUDE = /home/karsten/boost/MTL-4.0.8862-Linux/usr/include ;
+import os ;
+MTL4_INCLUDE = [ os.environ MTL4_INCLUDE ] ;
 
 project
     : requirements 

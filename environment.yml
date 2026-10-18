@@ -1,0 +1,15 @@
+name: yopo
+channels:
+  - robostack-humble
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy=1.22.3
+  - libffi>=3.4
+  - pip
+  - ros-humble-ros-base
+  - ros-humble-rviz2
+  - colcon-common-extensions
+  - compilers
+  - cmake<3.24
+  - make

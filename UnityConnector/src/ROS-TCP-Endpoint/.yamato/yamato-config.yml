@@ -7,7 +7,7 @@ variables:
   # Coverage measured as a percentage (out of 100)
   COVERAGE_EXPECTED: 3.5
 commands:
-    # run unit tests and save test results in /home/bokken/build/output/Unity-Technologies/ROS-TCP-Endpoint
+    # run unit tests and save test results in the checkout's build/output directory
     - command: |
         source /opt/ros/galactic/setup.bash && echo "ROS_DISTRO == galactic"
         cd .. && mkdir -p ros_ws/src && cp -r ./ROS-TCP-Endpoint ros_ws/src

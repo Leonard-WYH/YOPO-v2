@@ -155,7 +155,7 @@ boostbook standalone
     <xsl:param>boost.root=../../../../.. # OK but link to I:/boost_trunk/boost.png
 
     # Also control links to admonitions, so need to set separately.
-    #<xsl:param>boost.root=../../../../../../../boost_1_47_0 # OK file:///I:/boost_1_48_0/boost.png
+    #<xsl:param>boost.root=../../../../../../../boost_1_47_0
     # Quickbook [@boost:/boost/units/detail/utility.hpp] should make it relative to xsl parameter boost.root.
 
     # Use the your own local Boost stylesheet:

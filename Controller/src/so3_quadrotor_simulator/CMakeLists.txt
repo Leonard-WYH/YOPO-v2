@@ -19,15 +19,17 @@ find_package(ament_index_cpp REQUIRED)
 find_package(quadrotor_msgs REQUIRED)
 find_package(uav_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Development)
+find_package(Boost REQUIRED)
 
 add_library(quadrotor_dynamics src/dynamics/Quadrotor.cpp)
 target_include_directories(quadrotor_dynamics PUBLIC
   include ${CMAKE_CURRENT_SOURCE_DIR}/include/ode)
-target_link_libraries(quadrotor_dynamics Eigen3::Eigen)
+target_link_libraries(quadrotor_dynamics Eigen3::Eigen Boost::boost)
 
 add_executable(quadrotor_simulator_so3 src/quadrotor_simulator_so3.cpp)
 target_include_directories(quadrotor_simulator_so3 PRIVATE include)
-target_link_libraries(quadrotor_simulator_so3 quadrotor_dynamics)
+target_link_libraries(quadrotor_simulator_so3 quadrotor_dynamics Python3::Python)
 ament_target_dependencies(quadrotor_simulator_so3
   rclcpp nav_msgs sensor_msgs geometry_msgs visualization_msgs std_msgs
   tf2_ros ament_index_cpp quadrotor_msgs uav_utils)

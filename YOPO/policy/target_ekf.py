@@ -136,7 +136,6 @@ if __name__ == "__main__":
     dt = 0.1  # Time step
     ekf = EKF(dt)
 
-    closest_target, ekf_predicted_pos = ekf.predict_and_update(np.array([[0.5, 0.0, 1.0]]))
-    closest_target, ekf_predicted_pos = ekf.predict_and_update(np.array([[1.0, 0.0, 1.0]]))
-    closest_target, ekf_predicted_pos = ekf.predict_and_update(np.array([[2.0, 0.0, 1.0]]))
-    closest_target, ekf_predicted_pos = ekf.predict_and_update(np.array([[2.5, 0.0, 1.0]]))
+    for x in (0.5, 1.0, 2.0, 2.5, 3.0, 3.5):
+        valid_ids, predicted_pos, reliable = ekf.predict_and_update(np.array([[x, 0.0, 1.0]]))
+        print(f'valid_ids={valid_ids}, prediction={predicted_pos}, reliable={reliable}')
