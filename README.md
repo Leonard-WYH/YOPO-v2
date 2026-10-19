@@ -126,6 +126,23 @@ Shell 入口先定位脚本自身目录，Python 从 `__file__` 定位仓库根�
 
 FPS 操作：W/A/S/D 移动，Shift+W 奔跑，鼠标转向，左键射击，R 换弹，P 重生，Esc 释放鼠标。普通追踪中的 Respawn 会重置人物、无人机及规划状态。
 
+FPS 默认将鼠标灵敏度从原版的 1 降为 **0.08**，无人机出生距离从 5 米增至 **10 米**；
+开场及每次按 P 重生均有 **20 秒出生保护**，保护结束后恢复正常近身自爆。
+启动时会先完成连接和模型预热，再重置场景并交还鼠标控制，避免开场视角跳变或误开枪。
+FPS 模式会先打开 RViz，再打开游戏窗口，并在准备完成后激活游戏窗口接管键鼠焦点。
+
+```bash
+./run_demo.sh fps
+./run_demo.sh fps --fps-mouse-sensitivity 0.04  # 进一步降低鼠标灵敏度
+./run_demo.sh fps --fps-spawn-protection 30 --fps-drone-distance 12
+```
+
+FPS 参数在启动前自动写入本地仿真器的场景设置和出生配置，备份保存在
+`.reproduce/backups/fps-settings/`，当前配置记录在 `.reproduce/fps-settings.json`。
+该过程使用固定版本的 UnityPy，仅修改已验证官方场景中的设置字段，不替换 Unity 程序或游戏逻辑。
+已有安装更新后请运行 `./setup.sh` 补齐依赖。实际验证结果见 [FPS 操作验证](docs/fps-controls-validation.json)：
+60 像素鼠标移动约转动 3.44°，首次近身自爆发生在重生后约 20.01 秒，P 重生后可正常继续移动。
+
 人物节奏和窗口大小可以调整：
 
 ```bash

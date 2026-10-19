@@ -1,0 +1,36 @@
+{
+  "recorded_on": "2026-10-19",
+  "defaults": {
+    "mouse_sensitivity": 0.08,
+    "spawn_protection_sec": 20,
+    "drone_distance_m": 10,
+    "drone_spawn": [
+      40.0,
+      -50.0,
+      2.0
+    ],
+    "scene": "simulators/fps/Person-vs-Drone/Tracker_Data/level0",
+    "scene_sha256": "edc9fe7421253e26a16f4a4bbe14ca0570232484546366e5e15be1dc58db932a"
+  },
+  "torch_opening": {
+    "duration_sec": 12.73596195999562,
+    "player_detonations": 0,
+    "drone_displacement_m": 17.653974270226225,
+    "evidence": "logs/20261019-110522-fps-torch/result.json"
+  },
+  "tensorrt_input_and_respawn": {
+    "mouse_delta_pixels": 60,
+    "turn_degrees": 3.4400011853777976,
+    "first_attack_after_respawn_sec": 20.01286220550537,
+    "movement_after_P_m": 1.441008072197005,
+    "status": "passed"
+  },
+  "evidence": "logs/20261019-110851-fps-tensorrt/input-probe.json",
+  "status": "passed",
+  "default_with_rviz": {
+    "fps_host_window_active": true,
+    "status": "passed",
+    "opening_player_detonations": 0,
+    "evidence": "logs/20261019-111531-fps-torch/window-focus.json"
+  }
+}

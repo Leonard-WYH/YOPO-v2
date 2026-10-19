@@ -238,6 +238,12 @@ def parser():
     p.add_argument('--walk-seconds', type=float, default=8, help='tracker/random 每轮行走秒数')
     p.add_argument('--stop-seconds', type=float, default=3, help='tracker/random 每轮停留秒数')
     p.add_argument('--person-speed', type=float, default=3, help='tracker/random 人物行走速度，米/秒')
+    p.add_argument('--fps-mouse-sensitivity', type=float, default=0.08,
+                   help='FPS 鼠标灵敏度，默认 0.08（原版为 1）')
+    p.add_argument('--fps-spawn-protection', type=float, default=20,
+                   help='FPS 开场和每次 P 重生的保护秒数，默认 20')
+    p.add_argument('--fps-drone-distance', type=float, default=10,
+                   help='FPS 无人机出生时与人物的水平距离，默认 10 米')
     p.add_argument('--controller', choices=['attitude', 'position'], default='attitude')
     p.add_argument('--no-rviz', action='store_true')
     p.add_argument('--manual-connect', action='store_true', help='手动点击 Unity Connect')
@@ -301,6 +307,10 @@ def main():
     if not all(math.isfinite(value) and value > 0 for value in
                (args.walk_seconds, args.stop_seconds, args.person_speed)):
         raise SystemExit('walk-seconds/stop-seconds/person-speed 必须是有限正数')
+    if not (math.isfinite(args.fps_mouse_sensitivity) and args.fps_mouse_sensitivity > 0 and
+            math.isfinite(args.fps_spawn_protection) and args.fps_spawn_protection >= 0 and
+            math.isfinite(args.fps_drone_distance) and args.fps_drone_distance > 0):
+        raise SystemExit('FPS 灵敏度和出生距离必须 > 0，保护秒数必须 >= 0；均须为有限数')
     width, height = args.window_size
     if width < 960 or height < 540 or width * 9 != height * 16:
         raise SystemExit('window-size 请使用至少 960×540 的 16:9 分辨率，例如 1600 900 或 1920 1080')
@@ -347,6 +357,7 @@ def main():
     processes = Processes(log_dir)
     monitor = None
     ui = None
+    fps_settings = None
     def stop(signum, frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, stop)
@@ -356,14 +367,28 @@ def main():
             return controller_demo(args, monitor, processes, log_dir)
         processes.start('endpoint', ['ros2', 'run', 'ros_tcp_endpoint', 'default_server_endpoint',
                                     '--ros-args', '-p', 'ROS_IP:=127.0.0.1'])
-        if args.demo != 'collect':
-            processes.start('controller', ['ros2', 'launch', 'so3_quadrotor_simulator',
-                                          f'simulator_{args.controller}_control.launch.py'])
-        monitor.spin(2, processes)
         simulator = ROOT / 'simulators' / ('fps' if args.demo == 'fps' else 'tracker')
         binaries = list(simulator.rglob('Tracker.x86_64'))
         if not binaries:
             raise RuntimeError('仿真器尚未安装，先运行 ./setup.sh')
+        controller = ['ros2', 'launch', 'so3_quadrotor_simulator',
+                      f'simulator_{args.controller}_control.launch.py']
+        if args.demo == 'fps':
+            from fps_settings import configure_fps
+            fps_settings = configure_fps(binaries[0].parent, args.fps_mouse_sensitivity,
+                                         args.fps_spawn_protection, args.fps_drone_distance)
+            controller += [f'tracker_{axis}:={value}' for axis, value in
+                           zip('xyz', fps_settings['drone_spawn'])]
+            print(f'FPS：鼠标灵敏度 {args.fps_mouse_sensitivity:g}，'
+                  f'出生保护 {args.fps_spawn_protection:g} 秒，'
+                  f'无人机出生距离 {args.fps_drone_distance:g} 米', flush=True)
+        if args.demo != 'collect':
+            processes.start('controller', controller)
+        # Create RViz before the FPS window so it cannot steal keyboard/mouse
+        # focus after the player has entered the spawn-protection interval.
+        if args.demo == 'fps' and not args.no_rviz:
+            processes.start('rviz', ['rviz2', '-d', YOPO / 'yopo.rviz'])
+        monitor.spin(2, processes)
         unity_env = dict(os.environ)
         unity_env['SDL_VIDEO_HIGHDPI_DISABLED'] = '1'
         for variable in ('LD_LIBRARY_PATH', 'PYTHONPATH', 'QT_QPA_PLATFORM_PLUGIN_PATH', 'QT_PLUGIN_PATH'):
@@ -414,10 +439,10 @@ def main():
                 ui.connect()
                 next_connect = time.monotonic() + 3
         if args.demo == 'fps':
-            # The shooter gates movement on its own cursorLocked flag. Escape
-            # toggles that flag; clicking alone only fires while already locked.
-            ui.tap('Escape')
-            ui.click(640, 360)
+            # Spawn protection is activated by Revive (P), not by Awake.
+            # Keep the mouse unlocked while the policy warms up.
+            ui.tap('p')
+            monitor.spin(0.5, processes)
         if args.demo == 'collect':
             return collect(args, ui, monitor, processes, log_dir)
         trial = 2 if args.demo == 'fps' else 1
@@ -431,7 +456,7 @@ def main():
                                 '--dir', str(engine)], cwd=YOPO, check=True)
             planner += ['--use_tensorrt', '1', '--trt_engine', str(engine)]
         processes.start('planner', planner, cwd=YOPO)
-        if not args.no_rviz:
+        if not args.no_rviz and args.demo != 'fps':
             processes.start('rviz', ['rviz2', '-d', YOPO / 'yopo.rviz'])
         deadline = time.monotonic() + 60
         while not (monitor.counts['rgb'] >= 5 and monitor.counts['depth'] >= 5 and monitor.counts['command'] >= 3):
@@ -439,6 +464,19 @@ def main():
             if time.monotonic() > deadline:
                 raise RuntimeError(f'闭环启动超时：{monitor.report()}；检查 Unity Connect 与日志。')
         print('RGB-D → YOPO → 控制器 → 无人机闭环已就绪。', flush=True)
+        if args.demo == 'fps':
+            if nested:
+                ui.focus_host_window(os.environ['DISPLAY'], 'YOPO-Tracker - fps')
+                monitor.spin(0.2, processes)
+            # Start a full protection interval when the player can take control.
+            ui.tap('p')
+            monitor.spin(0.5, processes)
+            # Moving a locked cursor creates a large look delta; clicking also
+            # fires the weapon. Centre it while unlocked, flush input, then lock.
+            ui.move(640, 360)
+            monitor.spin(0.25, processes)
+            ui.tap('Escape')
+            monitor.spin(0.25, processes)
         motion = None
         if args.demo in ('tracker', 'random'):
             motion = WalkStopMotion(monitor, ui, args.walk_seconds, args.stop_seconds, args.person_speed)
@@ -481,6 +519,8 @@ def main():
                        'window_size': [ui.width, ui.height]})
         if motion:
             report['person_motion'] = motion.report()
+        if fps_settings:
+            report['fps_settings'] = fps_settings
         moved = report['max_displacement_m'].get('character', 0) >= 0.5
         require_movement = args.duration >= 5 and args.demo in ('tracker', 'random', 'click', 'keyboard', 'ros')
         report['status'] = 'passed' if not report['nonfinite_values'] and (not require_movement or moved) else 'failed'

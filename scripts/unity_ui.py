@@ -49,7 +49,31 @@ class UnityUI:
         self.display.sync()
         time.sleep(0.15)
 
-    def click(self, x, y):
+    @staticmethod
+    def focus_host_window(display_name, title):
+        """Activate Xephyr on the desktop as well as Unity inside its server."""
+        host = display.Display(display_name)
+        try:
+            root = host.screen().root
+            clients = root.get_full_property(host.intern_atom('_NET_CLIENT_LIST'), X.AnyPropertyType)
+            windows = clients.value if clients is not None else [w.id for w in root.query_tree().children]
+            for wid in windows:
+                window = host.create_resource_object('window', int(wid))
+                if window.get_wm_name() != title:
+                    continue
+                event = protocol.event.ClientMessage(window=window,
+                    client_type=host.intern_atom('_NET_ACTIVE_WINDOW'),
+                    data=(32, [2, X.CurrentTime, 0, 0, 0]))
+                root.send_event(event, event_mask=X.SubstructureRedirectMask | X.SubstructureNotifyMask)
+                window.configure(stack_mode=X.Above)
+                window.set_input_focus(X.RevertToParent, X.CurrentTime)
+                host.sync()
+                return
+            raise RuntimeError(f'没有找到 FPS 桌面窗口：{title}')
+        finally:
+            host.close()
+
+    def move(self, x, y):
         self.focus()
         origin = self.root.translate_coords(self.window, 0, 0)
         xtest.fake_input(self.display, X.MotionNotify,
@@ -57,6 +81,9 @@ class UnityUI:
                          y=origin.y + round(y * self.height / 720))
         self.display.sync()
         time.sleep(0.05)
+
+    def click(self, x, y):
+        self.move(x, y)
         xtest.fake_input(self.display, X.ButtonPress, 1)
         self.display.sync()
         time.sleep(0.08)
