@@ -1,8 +1,8 @@
 {
   "recorded_on": "2026-10-19",
   "defaults": {
-    "mouse_sensitivity": 0.08,
-    "spawn_protection_sec": 20,
+    "mouse_sensitivity": 1.0,
+    "spawn_protection_sec": 5,
     "drone_distance_m": 10,
     "drone_spawn": [
       40.0,
@@ -10,20 +10,27 @@
       2.0
     ],
     "scene": "simulators/fps/Person-vs-Drone/Tracker_Data/level0",
-    "scene_sha256": "edc9fe7421253e26a16f4a4bbe14ca0570232484546366e5e15be1dc58db932a"
+    "scene_sha256": "be46aebcd713a86f40b0c0654412f670195777e78261aaa3d5edd040a009b616",
+    "outcome_log": {
+      "marker": "Drone Explosion Sound",
+      "assembly": "simulators/fps/Person-vs-Drone/Tracker_Data/Managed/Assembly-CSharp.dll",
+      "assembly_sha256": "8eba015904590643add25dfd9347546e5813d481532eddf8f090399e2e68ca6a"
+    }
   },
   "torch_opening": {
     "duration_sec": 12.73596195999562,
     "player_detonations": 0,
     "drone_displacement_m": 17.653974270226225,
-    "evidence": "logs/20261019-110522-fps-torch/result.json"
+    "evidence": "logs/20261019-110522-fps-torch/result.json",
+    "mouse_sensitivity": 0.08
   },
   "tensorrt_input_and_respawn": {
     "mouse_delta_pixels": 60,
     "turn_degrees": 3.4400011853777976,
     "first_attack_after_respawn_sec": 20.01286220550537,
     "movement_after_P_m": 1.441008072197005,
-    "status": "passed"
+    "status": "passed",
+    "mouse_sensitivity": 0.08
   },
   "evidence": "logs/20261019-110851-fps-tensorrt/input-probe.json",
   "status": "passed",
@@ -31,6 +38,109 @@
     "fps_host_window_active": true,
     "status": "passed",
     "opening_player_detonations": 0,
-    "evidence": "logs/20261019-111531-fps-torch/window-focus.json"
+    "evidence": "logs/20261019-111531-fps-torch/window-focus.json",
+    "mouse_sensitivity": 0.08
+  },
+  "native_vertical_look": {
+    "window_size": [
+      2560,
+      1440
+    ],
+    "display": "native",
+    "host_window_active": true,
+    "input_source": "desktop XTest relative mouse motion on :1",
+    "mouse_up": {
+      "scenery_dx_pixels": -0.0548095703125,
+      "scenery_dy_pixels": 29.4903564453125,
+      "matched_features": 417
+    },
+    "mouse_down": {
+      "scenery_dx_pixels": 0.081787109375,
+      "scenery_dy_pixels": -28.92608642578125,
+      "matched_features": 413
+    },
+    "recovered_from_downward_limit": {
+      "scenery_dx_pixels": -0.10595703125,
+      "scenery_dy_pixels": 26.01580810546875,
+      "matched_features": 434
+    },
+    "stationary_drift": {
+      "scenery_dx_pixels": 0.4837646484375,
+      "scenery_dy_pixels": 0.53656005859375,
+      "matched_features": 585
+    },
+    "spawn_protection_during_input_test_sec": 120,
+    "status": "passed",
+    "evidence": "logs/20261019-112809-fps-torch/pitch-probe.json",
+    "downward_limit_screenshot": "logs/20261019-112809-fps-torch/pitch-down-limit.png",
+    "recovered_screenshot": "logs/20261019-112809-fps-torch/pitch-recovered.png",
+    "mouse_sensitivity": 0.08
+  },
+  "native_death_respawn": {
+    "backend": "tensorrt",
+    "display": "native",
+    "window_size": [
+      2560,
+      1440
+    ],
+    "spawn_protection_sec": 20,
+    "first_attack_after_respawn_sec": 20.439177751541138,
+    "mouse_up_after_P_scenery_dy_pixels": 29.26507568359375,
+    "matched_features": 606,
+    "movement_after_P_m": 1.469641093730339,
+    "status": "passed",
+    "evidence": "logs/20261019-113134-fps-tensorrt/native-respawn-probe.json",
+    "mouse_sensitivity": 0.08
+  },
+  "native_default_opening": {
+    "backend": "torch",
+    "display": "native",
+    "window_size": [
+      2560,
+      1440
+    ],
+    "mouse_sensitivity": 1.0,
+    "spawn_protection_sec": 20,
+    "player_detonations": 2,
+    "nonfinite_values": 0,
+    "status": "passed",
+    "evidence": "logs/20261019-113835-fps-torch/result.json"
+  },
+  "automatic_respawn": {
+    "backend": "torch",
+    "display": "native",
+    "spawn_protection_sec": 5,
+    "deaths": 5,
+    "automatic_respawns": 5,
+    "max_response_sec": 0.03063654899597168,
+    "attack_after_previous_spawn_sec": [
+      6.793508768081665,
+      4.998625993728638,
+      5.018862724304199,
+      5.0181543827056885,
+      4.9977967739105225
+    ],
+    "controller_respawn_resets": 7,
+    "nonfinite_values": 0,
+    "status": "passed",
+    "evidence": "logs/20261019-114918-fps-torch/result.json",
+    "events": "logs/20261019-114918-fps-torch/fps-session.json"
+  },
+  "delayed_round_reset": {
+    "reset_delay_sec": 2,
+    "spawn_protection_sec": 5,
+    "player_death_rounds_verified": 2,
+    "player_death_reset_response_sec": [
+      2.03765606880188,
+      2.045315980911255
+    ],
+    "duplicate_explosion_events_trigger_one_reset": true,
+    "drone_destroyed_delay_unit_test": "passed",
+    "manual_override_unit_test": "passed",
+    "event_timing_tests_passed": 5,
+    "explosion_method_logging_only_patch_verified": true,
+    "runtime_evidence": "logs/20261019-125105-fps-torch/result.json",
+    "tests": "tests/test_fps_session.py",
+    "status": "passed"
   }
 }

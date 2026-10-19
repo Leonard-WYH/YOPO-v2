@@ -85,6 +85,7 @@ class Monitor:
         self.command_modes = set()
         self.last_rgb = None
         self.last_depth = None
+        self.on_tick = None
         qos = QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT)
         topics = [('rgb', Image, '/drone_0/rgb'), ('depth', Image, '/drone_0/depth'),
                   ('drone', Odometry, '/drone_0/odom'), ('character', Odometry, '/character_0/odom'),
@@ -129,6 +130,8 @@ class Monitor:
             self.rclpy.spin_once(self.node, timeout_sec=0.05)
             if processes:
                 processes.check()
+            if self.on_tick:
+                self.on_tick()
 
     def send_goal(self, x, y, z=0):
         from geometry_msgs.msg import Vector3
@@ -232,16 +235,18 @@ def parser():
     p.add_argument('--backend', choices=['torch', 'tensorrt'], default='torch')
     p.add_argument('--graphics', choices=['glcore', 'vulkan'])
     p.add_argument('--display', choices=['auto', 'native', 'nested'], default='auto',
-                   help='auto 在高 DPI 桌面使用独立的 96 DPI Unity 窗口')
-    p.add_argument('--window-size', nargs=2, type=int, default=(1600, 900), metavar=('WIDTH', 'HEIGHT'),
-                   help='Unity 窗口尺寸，默认 1600 900，使用 16:9 分辨率')
+                   help='auto：FPS 使用原生窗口以支持相对鼠标；其他模式在高 DPI 桌面使用 Xephyr')
+    p.add_argument('--window-size', nargs=2, type=int, metavar=('WIDTH', 'HEIGHT'),
+                   help='Unity 窗口尺寸，FPS 默认 2560 1440，其他模式默认 1600 900；使用 16:9 分辨率')
     p.add_argument('--walk-seconds', type=float, default=8, help='tracker/random 每轮行走秒数')
     p.add_argument('--stop-seconds', type=float, default=3, help='tracker/random 每轮停留秒数')
     p.add_argument('--person-speed', type=float, default=3, help='tracker/random 人物行走速度，米/秒')
-    p.add_argument('--fps-mouse-sensitivity', type=float, default=0.08,
-                   help='FPS 鼠标灵敏度，默认 0.08（原版为 1）')
-    p.add_argument('--fps-spawn-protection', type=float, default=20,
-                   help='FPS 开场和每次 P 重生的保护秒数，默认 20')
+    p.add_argument('--fps-mouse-sensitivity', type=float, default=1.0,
+                   help='FPS 鼠标灵敏度，默认 1（原版正常速度，适用于原生窗口）')
+    p.add_argument('--fps-spawn-protection', type=float, default=5,
+                   help='FPS 开场和每次自动/P 重生的保护秒数，默认 5')
+    p.add_argument('--fps-reset-delay', type=float, default=2,
+                   help='FPS 被炸死或击落无人机后，展示结果再重置的秒数，默认 2')
     p.add_argument('--fps-drone-distance', type=float, default=10,
                    help='FPS 无人机出生时与人物的水平距离，默认 10 米')
     p.add_argument('--controller', choices=['attitude', 'position'], default='attitude')
@@ -296,6 +301,8 @@ def simple_action(args):
 
 def main():
     args = parser().parse_args()
+    if args.window_size is None:
+        args.window_size = (2560, 1440) if args.demo == 'fps' else (1600, 900)
     if args.demo == 'controller' and __debug__:
         # Early Humble Python message setters reject NaN in float64 fields.
         # The upstream C++ example intentionally uses NaN to disable lower-order
@@ -309,8 +316,9 @@ def main():
         raise SystemExit('walk-seconds/stop-seconds/person-speed 必须是有限正数')
     if not (math.isfinite(args.fps_mouse_sensitivity) and args.fps_mouse_sensitivity > 0 and
             math.isfinite(args.fps_spawn_protection) and args.fps_spawn_protection >= 0 and
-            math.isfinite(args.fps_drone_distance) and args.fps_drone_distance > 0):
-        raise SystemExit('FPS 灵敏度和出生距离必须 > 0，保护秒数必须 >= 0；均须为有限数')
+            math.isfinite(args.fps_drone_distance) and args.fps_drone_distance > 0 and
+            math.isfinite(args.fps_reset_delay) and args.fps_reset_delay >= 0):
+        raise SystemExit('FPS 灵敏度和出生距离必须 > 0，保护/结果展示秒数必须 >= 0；均须为有限数')
     width, height = args.window_size
     if width < 960 or height < 540 or width * 9 != height * 16:
         raise SystemExit('window-size 请使用至少 960×540 的 16:9 分辨率，例如 1600 900 或 1920 1080')
@@ -358,6 +366,7 @@ def main():
     monitor = None
     ui = None
     fps_settings = None
+    fps_session = None
     def stop(signum, frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, stop)
@@ -393,8 +402,14 @@ def main():
         unity_env['SDL_VIDEO_HIGHDPI_DISABLED'] = '1'
         for variable in ('LD_LIBRARY_PATH', 'PYTHONPATH', 'QT_QPA_PLATFORM_PLUGIN_PATH', 'QT_PLUGIN_PATH'):
             unity_env.pop(variable, None)
-        nested = args.display == 'nested' or (args.display == 'auto' and needs_nested_display())
+        # Xephyr forwards absolute desktop pointer positions and does not
+        # preserve Unity's locked relative mouse input reliably. FPS needs
+        # the native X server for vertical look and cursor recentering.
+        nested = args.display == 'nested' or (args.display == 'auto' and args.demo != 'fps'
+                                               and needs_nested_display())
         graphics = args.graphics or ('vulkan' if nested else 'glcore')
+        print(f'Unity 窗口：{width}×{height}，显示方式：'
+              f'{"nested" if nested else "native"}，渲染：{graphics}', flush=True)
         if nested:
             for number in range(90, 110):
                 if not Path(f'/tmp/.X11-unix/X{number}').exists():
@@ -418,6 +433,10 @@ def main():
                                 cwd=binaries[0].parent, env=unity_env)
         from unity_ui import UnityUI
         ui = UnityUI(unity.pid, display_name=unity_env['DISPLAY'], window_size=args.window_size)
+        if args.demo == 'fps':
+            from fps_session import FPSAutoRespawn
+            fps_session = FPSAutoRespawn(ui, log_dir / 'unity-player.log', args.fps_reset_delay)
+            monitor.on_tick = fps_session.update
         monitor.spin(5, processes)
         if args.demo == 'fps':
             ui.tap('Escape')
@@ -505,6 +524,14 @@ def main():
             finally:
                 ui.key('w', False)
         ui.screenshot(log_dir / 'unity-start.png')
+        if args.demo == 'fps':
+            # Begin the complete five-second interval at handoff, after model
+            # warmup, automated movement and startup screenshot have finished.
+            ui.send_key_event('p', True)
+            monitor.spin(0.05, processes)
+            ui.send_key_event('p', False)
+            print(f'FPS：本轮结束后保留结果 {args.fps_reset_delay:g} 秒再自动重置，'
+                  f'下一轮准备保护 {args.fps_spawn_protection:g} 秒。', flush=True)
         print(f'日志：{log_dir}\nCtrl+C 或 ./run_demo.sh stop 可停止全部进程。', flush=True)
         start = time.monotonic()
         while not args.duration or time.monotonic() - start < args.duration:
@@ -521,6 +548,8 @@ def main():
             report['person_motion'] = motion.report()
         if fps_settings:
             report['fps_settings'] = fps_settings
+        if fps_session:
+            report['fps_session'] = fps_session.report()
         moved = report['max_displacement_m'].get('character', 0) >= 0.5
         require_movement = args.duration >= 5 and args.demo in ('tracker', 'random', 'click', 'keyboard', 'ros')
         report['status'] = 'passed' if not report['nonfinite_values'] and (not require_movement or moved) else 'failed'
@@ -538,6 +567,10 @@ def main():
     finally:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+        if monitor:
+            monitor.on_tick = None
+        if fps_session:
+            fps_session.close()
         if ui:
             ui.close()
         processes.close()

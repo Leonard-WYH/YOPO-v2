@@ -17,7 +17,7 @@ cd YOPO-v2
 
 `setup.sh` 下载并校验两套官方 Unity 仿真器和 FPS 权重，安装 Python 依赖，编译 Controller 与 ROS-TCP-Endpoint。`run_demo.sh` 自动激活 `yopo`，启动通信桥、控制器、Unity、规划器和 RViz，并自动点击 Connect。
 
-默认追踪中，人物以 3 米/秒按“走 8 秒、停 3 秒”持续循环；到达目标或导航停滞后自动重新选择可行目标。Unity 窗口默认 1600×900。终端按 **Ctrl+C** 或在另一个终端执行 `./run_demo.sh stop`，可停止本次启动的进程。
+默认追踪中，人物以 3 米/秒按“走 8 秒、停 3 秒”持续循环；到达目标或导航停滞后自动重新选择可行目标。普通追踪窗口默认 1600×900，FPS 窗口默认 2560×1440。终端按 **Ctrl+C** 或在另一个终端执行 `./run_demo.sh stop`，可停止本次启动的进程。
 
 ## 2. 已验证环境
 
@@ -124,24 +124,34 @@ Shell 入口先定位脚本自身目录，Python 从 `__file__` 定位仓库根�
 | 环境与权重检查 | `./run_demo.sh check` | 检查 ROS 消息、CUDA、两套权重的真实推理 |
 | 停止仿真 | `./run_demo.sh stop` | 清理本脚本启动的仿真进程 |
 
-FPS 操作：W/A/S/D 移动，Shift+W 奔跑，鼠标转向，左键射击，R 换弹，P 重生，Esc 释放鼠标。普通追踪中的 Respawn 会重置人物、无人机及规划状态。
+FPS 操作：W/A/S/D 移动，Shift+W 奔跑，鼠标转向，左键射击，R 换弹，P 手动重生，Esc 释放鼠标。重生会重置人物、无人机及规划状态。
 
-FPS 默认将鼠标灵敏度从原版的 1 降为 **0.08**，无人机出生距离从 5 米增至 **10 米**；
-开场及每次按 P 重生均有 **20 秒出生保护**，保护结束后恢复正常近身自爆。
+FPS 默认鼠标灵敏度为原版的 **1.0**，在原生窗口中使用正常转向速度；无人机出生距离从 5 米增至 **10 米**；
+开场及每次自动/P 重生均有 **5 秒准备保护**，保护结束后恢复正常近身自爆。
 启动时会先完成连接和模型预热，再重置场景并交还鼠标控制，避免开场视角跳变或误开枪。
 FPS 模式会先打开 RViz，再打开游戏窗口，并在准备完成后激活游戏窗口接管键鼠焦点。
+FPS 默认使用 **2560×1440 的桌面原生窗口**，鼠标上移抬枪、下移低头。
+原生窗口直接接收相对鼠标输入，避免 Xephyr 嵌套窗口中的俯仰卡住、光标碰到边缘等问题。
+人物被炸死或无人机被击落后，保留死亡镜头或爆炸结果 **2 秒**，然后自动重置进入下一轮；无需手动按 P。
+结果展示时间与下一轮的 5 秒准备保护分别计时，按 P 可以手动跳过结果展示。
+自动重生直接向 Unity 窗口发送快捷键，不抢占桌面焦点，逐轮记录保存在 `logs/latest/fps-session.json`。
 
 ```bash
 ./run_demo.sh fps
-./run_demo.sh fps --fps-mouse-sensitivity 0.04  # 进一步降低鼠标灵敏度
-./run_demo.sh fps --fps-spawn-protection 30 --fps-drone-distance 12
+./run_demo.sh fps --window-size 1920 1080  # 屏幕较小时使用
+./run_demo.sh fps --fps-mouse-sensitivity 0.5  # 如需降低鼠标灵敏度
+./run_demo.sh fps --fps-spawn-protection 5 --fps-drone-distance 12
+./run_demo.sh fps --fps-reset-delay 3  # 将结果画面保留 3 秒
 ```
 
 FPS 参数在启动前自动写入本地仿真器的场景设置和出生配置，备份保存在
 `.reproduce/backups/fps-settings/`，当前配置记录在 `.reproduce/fps-settings.json`。
-该过程使用固定版本的 UnityPy，仅修改已验证官方场景中的设置字段，不替换 Unity 程序或游戏逻辑。
+该过程使用固定版本的 UnityPy 修改已验证场景字段，并为官方程序的无人机爆炸方法添加一条结果日志，供脚本准确识别击落。
+程序补丁会验证完整 SHA-256 并备份原文件，保留原有伤害、爆炸动画、声音和移除逻辑。
 已有安装更新后请运行 `./setup.sh` 补齐依赖。实际验证结果见 [FPS 操作验证](docs/fps-controls-validation.json)：
-60 像素鼠标移动约转动 3.44°，首次近身自爆发生在重生后约 20.01 秒，P 重生后可正常继续移动。
+原生窗口验证通过上下瞄准、低头到俯仰极限后重新抬枪，以及鼠标静止后视角保持稳定；
+早期 20 秒保护测试验证了死亡、P 重生、继续抬枪和行走，PyTorch 与 TensorRT 均完成闭环运行。
+俯仰测试使用 120 秒保护，以避免无人机攻击打断测试；日常启动默认保护时间现为 5 秒。
 
 人物节奏和窗口大小可以调整：
 
@@ -156,7 +166,8 @@ FPS 参数在启动前自动写入本地仿真器的场景设置和出生配置�
 
 ## 5. 高 DPI 显示与进程管理
 
-默认 `--display auto` 检查桌面 DPI。高 DPI、多屏桌面上，通过独立 96 DPI Xephyr 窗口运行 Unity，避免按钮显示位置与点击区域不一致；使用 Vulkan 在 NVIDIA GPU 上渲染，RViz 留在主桌面。
+默认 `--display auto` 下，FPS 使用桌面原生窗口和 OpenGL，保证锁定鼠标后的上下瞄准正常。
+其他模式检查桌面 DPI：高 DPI、多屏桌面上，通过独立 96 DPI Xephyr 窗口运行 Unity，避免按钮显示位置与点击区域不一致；使用 Vulkan 在 NVIDIA GPU 上渲染，RViz 留在主桌面。
 
 ```bash
 ./run_demo.sh --display nested       # 强制独立窗口，默认 Vulkan
@@ -240,7 +251,7 @@ python -c "import tensorrt as trt; print(trt.__version__)"
 | 训练 | 完成 1 个 epoch，检查点及损失均为有限数 |
 | TensorBoard | 本机 HTTP 200，训练曲线可读取 |
 | 持续走停 | 连续 60 秒，6 段行走、5 次停留、4 次目标选择；稳定停留阶段速度为 0 |
-| 放大窗口 | 1600×900 普通追踪、1920×1080 FPS 已验证 |
+| 放大窗口 | 1600×900 普通追踪、2560×1440 原生 FPS 与上下瞄准已验证 |
 | 目录迁移 | 仓库外重编译 5+1 个 ROS 包；相对路径绘图、训练、TensorRT 导出、普通/FPS 追踪及采集均通过 |
 
 统计快照只保存测试结果和相对证据路径，不包含原始本地日志、数据集、训练产物或下载缓存。当前运行结果以 `logs/` 下新生成的记录为准。
@@ -249,7 +260,9 @@ python -c "import tensorrt as trt; print(trt.__version__)"
 
 **找不到 Conda、ROS 消息或 rclpy：** 在能使用 Conda 的桌面终端执行 `./setup.sh`，不要在另一个 ROS 发行版环境中单独启动组件。需要手动使用 ROS 命令时先执行 `source scripts/env.sh`，确保各终端的 ROS domain 一致。
 
-**Unity 按钮点不中或窗口太小：** 使用 `--display nested`，并通过 `--window-size 1600 900` 或 `1920 1080` 调整。普通追踪脚本会根据图像话题确认连接，首次渲染较慢时自动重试 Connect。
+**Unity 按钮点不中或窗口太小：** 普通追踪使用 `--display nested`；FPS 使用 `--display native` 保证鼠标俯仰正常。通过 `--window-size 1920 1080` 或 `2560 1440` 调整大小。脚本会根据图像话题确认连接，首次渲染较慢时自动重试 Connect。
+
+**FPS 一直看地面：** 先确认使用默认的原生窗口，避免 `--display nested` 的相对鼠标输入问题。死亡镜头会保留 2 秒后自动重生，也可按 P 手动重置；Esc 可释放或重新锁定鼠标。
 
 **启动提示端口占用或已有 demo：** 先执行 `./run_demo.sh stop`。脚本只管理自身启动的进程；其他项目占用的 TCP 10000 需要在对应项目中停止。
 

@@ -24,18 +24,25 @@ class UnityUI:
                         self.window.configure(x=0, y=0, width=window_size[0], height=window_size[1])
                         self.display.sync()
                         time.sleep(0.5)
-                        geometry = window.get_geometry()
-                        self.width, self.height = geometry.width, geometry.height
+                        self.refresh_geometry()
                         self.focus()
                         return
             time.sleep(0.2)
         raise RuntimeError('Unity window did not appear; check DISPLAY and unity.log')
 
+    def refresh_geometry(self):
+        # Unity and the desktop can resize a native high-DPI window after it
+        # first appears. Use its current pixel size for input and reports.
+        geometry = self.window.get_geometry()
+        self.width, self.height = geometry.width, geometry.height
+
     def focus(self):
         active = self.display.intern_atom('_NET_ACTIVE_WINDOW')
         if self.root.get_full_property(self.display.intern_atom('_NET_SUPPORTING_WM_CHECK'), X.AnyPropertyType):
+            # This helper activates another application's window (EWMH source
+            # 2). Desktop focus prevention may ignore source 1 with no timestamp.
             event = protocol.event.ClientMessage(window=self.window, client_type=active,
-                                                data=(32, [1, X.CurrentTime, 0, 0, 0]))
+                                                data=(32, [2, X.CurrentTime, 0, 0, 0]))
             self.root.send_event(event, event_mask=X.SubstructureRedirectMask | X.SubstructureNotifyMask)
             self.display.flush()
             deadline = time.monotonic() + 2
@@ -75,6 +82,7 @@ class UnityUI:
 
     def move(self, x, y):
         self.focus()
+        self.refresh_geometry()
         origin = self.root.translate_coords(self.window, 0, 0)
         xtest.fake_input(self.display, X.MotionNotify,
                          x=origin.x + round(x * self.width / 1280),
@@ -103,6 +111,17 @@ class UnityUI:
         time.sleep(0.04)
         self.key(key, False)
 
+    def send_key_event(self, key, down):
+        """Send a shortcut only to Unity without changing desktop focus."""
+        code = self.display.keysym_to_keycode(XK.string_to_keysym(key))
+        if not code:
+            raise ValueError(f'Unknown key: {key}')
+        event_type = protocol.event.KeyPress if down else protocol.event.KeyRelease
+        self.window.send_event(event_type(time=X.CurrentTime, root=self.root, window=self.window,
+            child=X.NONE, root_x=0, root_y=0, event_x=0, event_y=0, state=0,
+            detail=code, same_screen=1), event_mask=X.KeyPressMask if down else X.KeyReleaseMask)
+        self.display.flush()
+
     def text(self, x, y, text):
         self.click(x, y)
         self.key('Control_L', True)
@@ -124,10 +143,13 @@ class UnityUI:
 
     def connect(self):
         # ROS-TCP-Connector's debug panel uses a fixed 300x105 pixel rectangle.
+        self.refresh_geometry()
         self.click(150 * 1280 / self.width, 65 * 720 / self.height)
 
     def screenshot(self, path):
-        self.focus()
+        # Reading the window pixels needs no focus change. Refocusing a locked
+        # FPS cursor can generate a synthetic look delta or steal user focus.
+        self.refresh_geometry()
         subprocess.run(['import', '-display', self.display.get_display_name(),
                         '-window', hex(self.window.id), str(path)], check=True, timeout=10)
 
